@@ -15,7 +15,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/AnupDudhe/cdec-alpha-app.git', branch: 'main'
+                git url: 'https://github.com/Pushkar-6920/cdec-alpha-app.git', branch: 'main'
             }
         }
 
