@@ -8,7 +8,7 @@ terraform {
   backend "s3" {
     bucket  = "cdec-alpha-terraform-state-pushkar"
     key     = "frontend/terraform.tfstate"
-    region  = "ap-southeast-2"
+    region  = "ap-south-1"
     encrypt = true
     # profile = "terraform-sessions"
 
