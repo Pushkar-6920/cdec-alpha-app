@@ -1,3 +1,11 @@
+// Frontend deploy pipeline — build React app, upload to S3, invalidate CloudFront cache
+//
+// Jenkins setup:
+//   1. Node.js 20 and npm on the agent
+//   2. AWS CLI on the agent
+//   3. AWS credential in Jenkins named: aws-frontend-deploy
+//      (needs s3:PutObject, s3:DeleteObject, s3:ListBucket, cloudfront:CreateInvalidation)
+
 pipeline {
     agent any
 
@@ -5,31 +13,27 @@ pipeline {
         string(
             name: 'S3_BUCKET',
             defaultValue: 'cdec-alpha-cbzpbp-dev-frontend',
-            description: 'S3 bucket name'
+            description: 'S3 bucket name for the frontend (e.g. cdec-frontend-dev-frontend)'
         )
-
         string(
             name: 'CLOUDFRONT_DISTRIBUTION_ID',
             defaultValue: 'E38XVDSMMV4QDS',
-            description: 'CloudFront distribution ID'
+            description: 'CloudFront distribution ID (e.g. E1234567890ABC)'
         )
-
         string(
             name: 'VITE_AUTH_API',
             defaultValue: 'https://api.naturecric.online/api/auth',
-            description: 'Auth API URL'
+            description: 'Auth API URL baked into the build'
         )
-
         string(
             name: 'VITE_COURSE_API',
             defaultValue: 'https://api.naturecric.online/api/courses',
-            description: 'Course API URL'
+            description: 'Course API URL baked into the build'
         )
-
         string(
             name: 'VITE_ENROLL_API',
             defaultValue: 'https://api.naturecric.online/api/enroll',
-            description: 'Enrollment API URL'
+            description: 'Enrollment API URL baked into the build'
         )
     }
 
@@ -42,25 +46,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git(
-                    url: 'https://github.com/Pushkar-6920/cdec-alpha-app.git',
-                    branch: 'main'
-                )
-            }
-        }
-
-        stage('Check Tools') {
-            steps {
-                sh '''
-                    echo "===== Node ====="
-                    node --version
-
-                    echo "===== npm ====="
-                    npm --version
-
-                    echo "===== AWS CLI ====="
-                    aws --version
-                '''
+                git url: 'https://github.com/Pushkar-6920/cdec-alpha-app.git', branch: 'main'
             }
         }
 
@@ -76,10 +62,9 @@ pipeline {
             steps {
                 dir(env.APP_DIR) {
                     sh """
-                        export VITE_AUTH_API='${params.VITE_AUTH_API}'
-                        export VITE_COURSE_API='${params.VITE_COURSE_API}'
-                        export VITE_ENROLL_API='${params.VITE_ENROLL_API}'
-
+                        export VITE_AUTH_API=${params.VITE_AUTH_API}
+                        export VITE_COURSE_API=${params.VITE_COURSE_API}
+                        export VITE_ENROLL_API=${params.VITE_ENROLL_API}
                         npm run build
                     """
                 }
@@ -90,13 +75,13 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-frontend-deploy',
+                    credentialsId: 'aws-frontend-terraform',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     dir(env.APP_DIR) {
                         sh """
-                            echo "Uploading frontend..."
+                            echo "Uploading to s3://${params.S3_BUCKET}/"
                             aws s3 sync dist/ s3://${params.S3_BUCKET}/ --delete
                         """
                     }
@@ -108,15 +93,14 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-frontend-deploy',
+                    credentialsId: 'aws-frontend-terraform',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     sh """
-                        echo "Invalidating CloudFront..."
-
-                        aws cloudfront create-invalidation \
-                            --distribution-id ${params.CLOUDFRONT_DISTRIBUTION_ID} \
+                        echo "Invalidating CloudFront distribution ${params.CLOUDFRONT_DISTRIBUTION_ID}"
+                        aws cloudfront create-invalidation \\
+                            --distribution-id ${params.CLOUDFRONT_DISTRIBUTION_ID} \\
                             --paths "/*"
                     """
                 }
@@ -128,7 +112,6 @@ pipeline {
         success {
             echo 'Frontend deployed successfully!'
         }
-
         failure {
             echo 'Frontend deployment failed. Check the stage logs above.'
         }
