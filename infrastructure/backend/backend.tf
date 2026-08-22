@@ -6,9 +6,9 @@
 
 terraform {
   backend "s3" {
-    bucket = "cdec-alpha-terraform-state-anup"
+    bucket = "cdec-alpha-terraform-state-pushkar"
     key    = "backend/terraform.tfstate"
-    region = "ap-southeast-2"
+    region = "ap-south-1"
     #profile = "terraform-sessions"
 
   }
