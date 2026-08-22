@@ -34,6 +34,6 @@ additional_tags = {
 
 # ALB Ingress — AWS Load Balancer Controller + API ingress
 enable_alb_ingress  = true
-ingress_host        = "naturecric.online"
+ingress_host        = "api.naturecric.online"
 acm_certificate_arn = "arn:aws:acm:us-east-1:243197392324:certificate/2699528b-288f-4ccd-bbd6-f287686b81c5"
 alb_name            = "cdec-alpha-alb"
