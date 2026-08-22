@@ -7,9 +7,7 @@
 //      (needs s3:PutObject, s3:DeleteObject, s3:ListBucket, cloudfront:CreateInvalidation)
 
 pipeline {
-    agent {
-        label 'ecs2'
-    }
+    agent any
 
     parameters {
         string(
