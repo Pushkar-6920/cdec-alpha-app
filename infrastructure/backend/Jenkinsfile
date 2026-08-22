@@ -2,9 +2,7 @@
 // Requires: terraform, aws-frontend-terraform credentials, terraform.tfvars and backend.hcl in TF_DIR
 
 pipeline {
-    agent {
-        label 'ecs2'
-    }
+        agent any
 
     parameters {
         choice(
