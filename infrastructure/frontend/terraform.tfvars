@@ -4,7 +4,7 @@ aws_region  = "ap-south-1"
 environment = "dev"
 application = "cdec-alpha-cbzpbp"
 
-acm_certificate_arn = "arn:aws:acm:ap-south-1:243197392324:certificate/bef50c9c-fd7c-4b90-9027-271de23de697"
+acm_certificate_arn = "arn:aws:acm:us-east-1:243197392324:certificate/2699528b-288f-4ccd-bbd6-f287686b81c5"
 
 # Use a domain you own — example.com is reserved by AWS and will fail
 dns_zone_name   = "naturecric.online"
