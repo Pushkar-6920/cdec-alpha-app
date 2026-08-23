@@ -1,0 +1,110 @@
+// Enrollment service deploy pipeline — build Docker image, push to ECR, roll out to EKS
+//
+// Jenkins agent needs: Docker, AWS CLI, kubectl
+// AWS credential in Jenkins: aws-frontend-terraform
+//
+// EKS cluster: cdec-eks-dev
+// EKS region: eu-west-1
+
+pipeline {
+    agent any
+    
+
+    environment {
+        EKS_CLUSTER = 'cdec-eks-dev'
+        EKS_REGION = 'ap-south-1'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/Pushkar-6920/cdec-alpha-app.git', branch: 'main'
+            }
+        }
+
+        stage('Build Docker image') {
+            agent {
+                label 'master'
+            }
+            steps {
+                dir('application/backend/enrollment-service') {
+                    sh '''
+                        docker build -t 243197392324.dkr.ecr.ap-south-1.amazonaws.com/backend/enrollment:latest .
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            agent {
+                label 'master'
+            }
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-frontend-terraform',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh '''
+                        export AWS_DEFAULT_REGION=ap-south-1
+
+                        aws ecr get-login-password --region ap-south-1 | \
+                            docker login \
+                            --username AWS \
+                            --password-stdin \
+                            243197392324.dkr.ecr.ap-south-1.amazonaws.com
+
+                        docker push \
+                            243197392324.dkr.ecr.ap-south-1.amazonaws.com/backend/enrollment:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-frontend-terraform',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    dir('application/backend/enrollment-service') {
+                        sh '''
+                            export AWS_DEFAULT_REGION=${EKS_REGION}
+
+                            aws eks update-kubeconfig \
+                                --region ${EKS_REGION} \
+                                --name ${EKS_CLUSTER}
+
+                            kubectl apply \
+                                -f k8s/deployment.yml \
+                                -n default
+
+                            kubectl rollout restart \
+                                deployment/enrollment-service \
+                                -n default
+
+                            kubectl rollout status \
+                                deployment/enrollment-service \
+                                -n default \
+                                --timeout=300s
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'enrollment-service deployed successfully!'
+        }
+
+        failure {
+            echo 'enrollment-service deployment failed. Check the stage logs above.'
+        }
+    }
+}
