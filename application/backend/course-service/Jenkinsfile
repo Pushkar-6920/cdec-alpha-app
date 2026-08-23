@@ -8,9 +8,7 @@
 //   cluster_admin_principal_arns (see backend README — kubectl access)
 
 pipeline {
-    agent {
-        label 'ecs2'
-    }
+    agent any
     
     environment {
         EKS_CLUSTER = 'cdec-eks-dev'
