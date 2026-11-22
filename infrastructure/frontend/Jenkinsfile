@@ -14,14 +14,7 @@ pipeline {
                     branch: 'main'
             }
         }
-        stage('Override names') {
-    steps {
-        sh '''
-            sed -i 's/cdec-alpha-cbzpbp/cdec-alpha-sandip/' infrastructure/frontend/terraform.tfvars
-            grep -n "cdec-alpha" infrastructure/frontend/terraform.tfvars
-        '''
-    }
-}
+      
 
         stage('Terraform Init') {
             steps {
