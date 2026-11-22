@@ -1,6 +1,6 @@
 # Copy to terraform.tfvars. Do not commit terraform.tfvars.
 
-aws_region   = "ap-south-1"
+aws_region   = "eu-north-1"
 environment  = "dev"
 project_name = "cdec-alpha"
 cluster_name = "cdec-eks-dev"
@@ -9,7 +9,7 @@ cluster_name = "cdec-eks-dev"
 vpc_cidr             = "10.0.0.0/16"
 public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
 private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24"]
-availability_zones   = ["ap-south-1a", "ap-south-1b"]
+availability_zones   = ["eu-north-1a", "eu-north-1b"]
 
 single_nat_gateway = true
 
@@ -35,5 +35,5 @@ additional_tags = {
 # ALB Ingress — AWS Load Balancer Controller + API ingress
 enable_alb_ingress  = true
 ingress_host        = "api.naturecric.online"
-acm_certificate_arn = "arn:aws:acm:ap-south-1:243197392324:certificate/bef50c9c-fd7c-4b90-9027-271de23de697"
+acm_certificate_arn = "arn:aws:acm:eu-north-1:877732267978:certificate/ffddc157-96e7-4f32-a1f4-23ef47cadcff"
 alb_name            = "cdec-alpha-alb"
