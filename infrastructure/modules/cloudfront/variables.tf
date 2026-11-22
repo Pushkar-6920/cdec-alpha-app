@@ -11,7 +11,7 @@ variable "environment" {
 variable "name_prefix" {
   description = "Override for resource name prefix. Defaults to {application}-{environment}."
   type        = string
-  default     = null
+  default     = cbzpushkar #null
 }
 
 variable "bucket_name" {
