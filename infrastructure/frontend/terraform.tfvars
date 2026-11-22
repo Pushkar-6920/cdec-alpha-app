@@ -2,7 +2,7 @@
 
 aws_region  = "eu-north-1"
 environment = "dev"
-application = "cdec-alpha-cbzpbp"
+application = "cdec-alpha-cbzpbz"
 
 acm_certificate_arn = "arn:aws:acm:us-east-1:243197392324:certificate/2699528b-288f-4ccd-bbd6-f287686b81c5"
 
